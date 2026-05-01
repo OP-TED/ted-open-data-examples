@@ -1,0 +1,45 @@
+# Curated knowledge index for the TED Open Data Assistant.
+#
+# This file lists query examples the assistant indexes as RAG knowledge
+# to ground its SPARQL generation. Entries here are independent of
+# web-library.yaml — a given query may appear in either, both, or neither
+# index.
+#
+# This is curated by the TED Open Data Assistant team. Web-library
+# contributors are welcome to suggest additions but are not required to
+# populate this file when adding a query.
+#
+# Schema per entry:
+#
+#   sparql:      path to the .sparql file (relative to repo root)
+#   intent:      what user question(s) this example answers — the field
+#                indexed for semantic retrieval. Include multiple
+#                phrasings of the same question to widen recall.
+#   tags:        keywords / patterns the query demonstrates
+#                (e.g. date-filter, AgentInRole, joint-procurement, top-N)
+#   epo_terms:   canonical short URIs of the ePO terms used
+#                (e.g. epo:Buyer, epo:hasPublicationDate)
+#   notes:       optional — gotchas, pattern hints, why this is
+#                non-obvious. Indexed alongside the query.
+#
+# Example entry:
+#
+#   - sparql: queries/winners-per-day.sparql
+#     intent: |
+#       List winners (winning organisations) on a specific publication date.
+#       Who won contracts on date X?
+#       Awarded tenders for date X.
+#     tags: [date-filter, AgentInRole, awarded-tender]
+#     epo_terms:
+#       - epo:Notice
+#       - epo:hasPublicationDate
+#       - epo:refersToRole
+#       - epo:Winner
+#       - epo:playedBy
+#       - epo:hasLegalName
+#     notes: |
+#       Winner is a role (epo:Winner subclass of epo:AgentInRole) played
+#       by an Organisation. The legal name lives on the Organisation, not
+#       on the role node — traverse via epo:playedBy.
+
+queries: []
