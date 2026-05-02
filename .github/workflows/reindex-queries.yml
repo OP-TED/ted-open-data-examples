@@ -1,0 +1,52 @@
+name: Reindex query library
+
+# When the published library changes on `main`, refresh the
+# ted-open-data-assistant-queries index in deepset Cloud so the assistant
+# sees the new/updated queries.
+#
+# Required GitHub repository configuration:
+#   - Secret  HAYSTACK_API_KEY     deepset Cloud Service Key (workspace editor)
+#   - Variable HAYSTACK_WORKSPACE  workspace name (e.g. OP_C3_PLAYGROUND)
+#
+# Optional:
+#   - Variable HAYSTACK_API_BASE   defaults to https://api.cloud.deepset.ai
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web-library.yaml'
+      - 'queries/**'
+      - 'ci/**'
+      - '.github/workflows/reindex-queries.yml'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to index from (default: the workflow's checkout ref)"
+        required: false
+        default: ''
+
+jobs:
+  reindex:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pyyaml
+        run: pip install pyyaml
+
+      - name: Reindex
+        env:
+          HAYSTACK_API_KEY: ${{ secrets.HAYSTACK_API_KEY }}
+          HAYSTACK_API_BASE: ${{ vars.HAYSTACK_API_BASE || 'https://api.cloud.deepset.ai' }}
+          HAYSTACK_WORKSPACE: ${{ vars.HAYSTACK_WORKSPACE }}
+        run: python3 ci/reindex.py

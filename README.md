@@ -20,8 +20,12 @@ A query may appear in either index, both, or neither — the indexes are indepen
 ├── CONTRIBUTING.md          # how to add or fix a query
 ├── web-library.yaml         # what the web app shows
 ├── llm-knowledge.yaml       # what the assistant indexes
-└── queries/                 # the .sparql pool — organise as you wish
-    └── *.sparql
+├── queries/                 # the .sparql pool — organise as you wish
+│   └── *.sparql
+├── ci/
+│   └── reindex.py           # refreshes the assistant's RAG index from web-library.yaml
+└── .github/workflows/
+    └── reindex-queries.yml  # runs ci/reindex.py on every push to main
 ```
 
 The data is modelled with the [**eProcurement Ontology (ePO)**](https://github.com/OP-TED/ePO) v4.x. The SPARQL endpoint is:
@@ -62,6 +66,8 @@ See the header comment in [`llm-knowledge.yaml`](llm-knowledge.yaml). Each entry
 ## Contributing
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md). In short: open a PR against `develop`; entries are published when `develop` merges to `main`.
+
+When `develop` merges to `main`, a GitHub Action ([reindex-queries.yml](.github/workflows/reindex-queries.yml)) automatically refreshes the TED Open Data Assistant's RAG index from `web-library.yaml` so newly added queries become available to the assistant. No manual reindexing step is needed.
 
 ## License
 
