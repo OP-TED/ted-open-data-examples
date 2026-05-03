@@ -7,9 +7,11 @@ This is a **knowledge product** consumed by multiple TED tools. Each consumer re
 | Consumer | Index file | Purpose |
 |---|---|---|
 | **TED Open Data Service** ([`OP-TED/ted-open-data`](https://github.com/OP-TED/ted-open-data)) | `web-library.yaml` | Populates the editor's "Query Library" tab |
-| **TED Open Data Assistant** | `llm-knowledge.yaml` | Example-driven knowledge for natural-language SPARQL generation |
+| **TED Open Data Assistant** | `web-library.yaml` (today), evolving to `llm-knowledge.yaml` as it gets curated | Example-driven knowledge for natural-language SPARQL generation |
 
 A query may appear in either index, both, or neither — the indexes are independent curated views over the same pool.
+
+The assistant currently indexes the same examples that drive the web app (`web-library.yaml`) — this gets the assistant grounded in the curated examples immediately. As [`llm-knowledge.yaml`](llm-knowledge.yaml) gets populated with assistant-specific intent metadata and any LLM-only examples, the assistant will switch to it as its primary source.
 
 ## Layout
 
@@ -18,10 +20,14 @@ A query may appear in either index, both, or neither — the indexes are indepen
 ├── README.md
 ├── LICENSE                  # CC BY 4.0
 ├── CONTRIBUTING.md          # how to add or fix a query
-├── web-library.yaml         # what the web app shows
-├── llm-knowledge.yaml       # what the assistant indexes
-└── queries/                 # the .sparql pool — organise as you wish
-    └── *.sparql
+├── web-library.yaml         # web app's Query Library tab + (today) assistant's RAG source
+├── llm-knowledge.yaml       # assistant-specific overlay — planned/curated, not yet indexed
+├── queries/                 # the .sparql pool — organise as you wish
+│   └── *.sparql
+├── ci/
+│   └── reindex.py           # refreshes the assistant's RAG index from web-library.yaml
+└── .github/workflows/
+    └── reindex-queries.yml  # runs ci/reindex.py on every push to main
 ```
 
 The data is modelled with the [**eProcurement Ontology (ePO)**](https://github.com/OP-TED/ePO) v4.x. The SPARQL endpoint is:
@@ -62,6 +68,8 @@ See the header comment in [`llm-knowledge.yaml`](llm-knowledge.yaml). Each entry
 ## Contributing
 
 See [`CONTRIBUTING.md`](CONTRIBUTING.md). In short: open a PR against `develop`; entries are published when `develop` merges to `main`.
+
+When `develop` merges to `main`, a GitHub Action ([reindex-queries.yml](.github/workflows/reindex-queries.yml)) automatically refreshes the TED Open Data Assistant's RAG index from `web-library.yaml` so newly added queries become available to the assistant. No manual reindexing step is needed.
 
 ## License
 

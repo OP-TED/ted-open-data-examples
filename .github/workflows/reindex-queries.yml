@@ -1,0 +1,63 @@
+name: Reindex query library
+
+# When the published library changes on `main`, refresh the
+# ted-open-data-assistant-queries index in deepset Cloud so the assistant
+# sees the new/updated queries.
+#
+# Required GitHub repository configuration:
+#   - Secret  HAYSTACK_API_KEY     deepset Cloud Service Key (workspace editor)
+#   - Variable HAYSTACK_WORKSPACE  workspace name (e.g. OP_C3_PLAYGROUND)
+#
+# Optional:
+#   - Variable HAYSTACK_API_BASE   defaults to https://api.cloud.deepset.ai
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web-library.yaml'
+      - 'llm-knowledge.yaml'
+      - 'queries/**'
+      - 'ci/**'
+      - '.github/workflows/reindex-queries.yml'
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to index from (default: the workflow's own ref)"
+        required: false
+        default: ''
+
+jobs:
+  reindex:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+
+      # Capture the SHA of the actually-checked-out tree so the script
+      # fetches raw URLs from exactly the ref we're indexing.
+      # Without this, a manual run with `inputs.ref=develop` would read
+      # local YAML from develop while constructing raw URLs against the
+      # workflow's own ref (main).
+      - name: Resolve indexed ref
+        id: ref
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pyyaml
+        run: pip install pyyaml
+
+      - name: Reindex
+        env:
+          HAYSTACK_API_KEY: ${{ secrets.HAYSTACK_API_KEY }}
+          HAYSTACK_API_BASE: ${{ vars.HAYSTACK_API_BASE || 'https://api.cloud.deepset.ai' }}
+          HAYSTACK_WORKSPACE: ${{ vars.HAYSTACK_WORKSPACE }}
+          INDEX_REF: ${{ steps.ref.outputs.sha }}
+        run: python3 ci/reindex.py
