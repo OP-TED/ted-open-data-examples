@@ -16,25 +16,35 @@ on:
     branches: [main]
     paths:
       - 'web-library.yaml'
+      - 'llm-knowledge.yaml'
       - 'queries/**'
       - 'ci/**'
       - '.github/workflows/reindex-queries.yml'
   workflow_dispatch:
     inputs:
       ref:
-        description: "Git ref to index from (default: the workflow's checkout ref)"
+        description: "Git ref to index from (default: the workflow's own ref)"
         required: false
         default: ''
 
 jobs:
   reindex:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.ref || github.ref }}
+
+      # Capture the SHA of the actually-checked-out tree so the script
+      # fetches raw URLs from exactly the ref we're indexing.
+      # Without this, a manual run with `inputs.ref=develop` would read
+      # local YAML from develop while constructing raw URLs against the
+      # workflow's own ref (main).
+      - name: Resolve indexed ref
+        id: ref
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -49,4 +59,5 @@ jobs:
           HAYSTACK_API_KEY: ${{ secrets.HAYSTACK_API_KEY }}
           HAYSTACK_API_BASE: ${{ vars.HAYSTACK_API_BASE || 'https://api.cloud.deepset.ai' }}
           HAYSTACK_WORKSPACE: ${{ vars.HAYSTACK_WORKSPACE }}
+          INDEX_REF: ${{ steps.ref.outputs.sha }}
         run: python3 ci/reindex.py

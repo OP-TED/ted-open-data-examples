@@ -7,9 +7,11 @@ This is a **knowledge product** consumed by multiple TED tools. Each consumer re
 | Consumer | Index file | Purpose |
 |---|---|---|
 | **TED Open Data Service** ([`OP-TED/ted-open-data`](https://github.com/OP-TED/ted-open-data)) | `web-library.yaml` | Populates the editor's "Query Library" tab |
-| **TED Open Data Assistant** | `llm-knowledge.yaml` | Example-driven knowledge for natural-language SPARQL generation |
+| **TED Open Data Assistant** | `web-library.yaml` (today), evolving to `llm-knowledge.yaml` as it gets curated | Example-driven knowledge for natural-language SPARQL generation |
 
 A query may appear in either index, both, or neither — the indexes are independent curated views over the same pool.
+
+The assistant currently indexes the same examples that drive the web app (`web-library.yaml`) — this gets the assistant grounded in the curated examples immediately. As [`llm-knowledge.yaml`](llm-knowledge.yaml) gets populated with assistant-specific intent metadata and any LLM-only examples, the assistant will switch to it as its primary source.
 
 ## Layout
 
