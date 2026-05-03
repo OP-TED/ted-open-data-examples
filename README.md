@@ -20,8 +20,8 @@ The assistant currently indexes the same examples that drive the web app (`web-l
 ├── README.md
 ├── LICENSE                  # CC BY 4.0
 ├── CONTRIBUTING.md          # how to add or fix a query
-├── web-library.yaml         # what the web app shows
-├── llm-knowledge.yaml       # what the assistant indexes
+├── web-library.yaml         # web app's Query Library tab + (today) assistant's RAG source
+├── llm-knowledge.yaml       # assistant-specific overlay — planned/curated, not yet indexed
 ├── queries/                 # the .sparql pool — organise as you wish
 │   └── *.sparql
 ├── ci/
