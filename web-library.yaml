@@ -174,3 +174,13 @@ queries:
    title: Contract count per currency
    description: This query retrieves the count of contracts per currency for a specific date range.
    sparql: queries/contract-count-per-currency.sparql
+
+ - category: Federated queries
+   title: Notices per million population by buyer country
+   description: This federated query joins TED notice counts per buyer country with Wikidata population data to calculate notices per million population.
+   sparql: queries/notices-per-million-population-buyer-country.sparql
+
+ - category: Contracts
+   title: Contracts awarded by EU institutions
+   description: This query retrieves contracts awarded by EU institutions and bodies, including procedure type, buyer name, lot and framework agreement type. Query executes successfully with LIMIT 1000 or for a single date range. Refer to the known issues and limitations page - https://docs.ted.europa.eu/ODS/latest/querying/known_issues.html .
+   sparql: queries/contracts-awarded-by-eu-inst.sparql
