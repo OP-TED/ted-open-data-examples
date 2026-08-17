@@ -55,6 +55,12 @@ def collect_paths(library_yaml: pathlib.Path) -> list[str]:
         )
         sys.exit(2)
     queries = library.get("queries") or []
+    if not isinstance(queries, list):
+        sys.stderr.write(
+            f"ERROR: {library_yaml} has a 'queries' key that is not a "
+            f"list: {queries!r}\n"
+        )
+        sys.exit(2)
 
     paths = []
     for q in queries:
