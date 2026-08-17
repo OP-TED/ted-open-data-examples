@@ -48,10 +48,22 @@ def collect_paths(library_yaml: pathlib.Path) -> list[str]:
         sys.exit(2)
 
     library = yaml.safe_load(library_yaml.read_text(encoding="utf-8")) or {}
+    if not isinstance(library, dict):
+        sys.stderr.write(
+            f"ERROR: {library_yaml} does not parse to a mapping with a "
+            f"'queries' list at the top level.\n"
+        )
+        sys.exit(2)
     queries = library.get("queries") or []
 
     paths = []
     for q in queries:
+        if not isinstance(q, dict):
+            sys.stderr.write(
+                f"ERROR: {library_yaml} has a 'queries' entry that is not "
+                f"a mapping: {q!r}\n"
+            )
+            sys.exit(2)
         sparql_rel = (q.get("sparql") or "").strip()
         if sparql_rel:
             paths.append(sparql_rel)
