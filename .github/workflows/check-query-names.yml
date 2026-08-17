@@ -11,11 +11,15 @@ on:
     paths:
       - 'web-library.yaml'
       - 'queries/**'
+      - 'ci/check_unique_basenames.py'
+      - '.github/workflows/check-query-names.yml'
   push:
     branches: [main, develop]
     paths:
       - 'web-library.yaml'
       - 'queries/**'
+      - 'ci/check_unique_basenames.py'
+      - '.github/workflows/check-query-names.yml'
 
 jobs:
   check-basenames:
