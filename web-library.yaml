@@ -162,7 +162,7 @@ queries:
 
  - category: Stats
    title: Top winners by contract count
-   description: This query retrieves the top 10 winners by contract count for a specific date range, joining contracts to notices through lots.
+   description: This query retrieves the top 10 winners (grouped by name and country) by contract count for a specific date range, joining contracts to notices through lots. Known limitation: winners whose legal name is recorded in more than one language are counted as separate winners. Refer to the known issues and limitations page - https://docs.ted.europa.eu/ODS/latest/querying/known_issues.html .
    sparql: queries/top-winners-by-contract-count.sparql
 
  - category: Stats

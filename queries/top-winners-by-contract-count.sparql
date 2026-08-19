@@ -1,13 +1,26 @@
 # Retrieves the top 10 winners by contract count for a specific date range.
 # Joins contracts to notices through lots. Handles both individual organisations and organisation groups.
-# Returns: winner name and the number of contracts, ordered by highest count.
+# Returns: winner name, winner country, and the number of contracts, ordered by highest count.
 # Change the date range as per your requirements.
+#
+# Groups by winner name AND country to avoid merging different real-world
+# winners that happen to share a generic name across different countries.
+# Winners within the same country with the same name are considered as
+# one entity.
+#
+# Known limitation: winners whose legal name is recorded in more than one
+# language are still counted as separate winners, since there is no stable
+# cross-notice organization identifier in the data to group on instead. See
+# known issues and limitations:
+# https://docs.ted.europa.eu/ODS/latest/querying/known_issues.html
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
+PREFIX m8g: <http://data.europa.eu/m8g/>
 PREFIX org: <http://www.w3.org/ns/org#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?winnerName (COUNT(DISTINCT ?contract) AS ?numberOfContracts)
+SELECT ?winnerName ?winnerCountry (COUNT(DISTINCT ?contract) AS ?numberOfContracts)
 WHERE {
   FILTER (?contractConclusionDate >= "2025-01-01"^^xsd:date &&
           ?contractConclusionDate <= "2025-01-10"^^xsd:date)
@@ -29,13 +42,22 @@ WHERE {
 
     OPTIONAL {
       { ?org a org:Organization ;
-             epo:hasLegalName ?winnerName . }
+             epo:hasLegalName ?winnerName ;
+             m8g:registeredAddress / epo:hasCountryCode ?winnerCountryUri . }
       UNION
       { ?org a epo:OrganisationGroup ;
-             epo:hasMember / epo:hasLegalName ?winnerName . }
+             epo:hasMember ?member .
+        ?member epo:hasLegalName ?winnerName ;
+                m8g:registeredAddress / epo:hasCountryCode ?winnerCountryUri . }
     }
   }
+
+  # Resolve country label in English
+  OPTIONAL {
+    ?winnerCountryUri skos:prefLabel ?winnerCountry .
+    FILTER (lang(?winnerCountry) = "en")
+  }
 }
-GROUP BY ?winnerName
+GROUP BY ?winnerName ?winnerCountry
 ORDER BY DESC(?numberOfContracts)
 LIMIT 10
