@@ -1,6 +1,16 @@
 # Retrieve competition notices published on a specific date, including
 # procedure type, buyer name, and buyer country.
 # Change the date below to query a different day.
+#
+# Uses epo:CompetitionNotice directly instead of epo:Notice + a form-type
+# filter -- simpler, and confirmed to return the same set of notices.
+#
+# Note: Groups by (publicationNumber, buyer organisation URI) and picks one
+# legal-name literal via SAMPLE, instead of SELECT DISTINCT over the raw
+# language-tagged name. A buyer organisation whose legal name is recorded
+# in more than one language would otherwise produce duplicate rows for the
+# same notice. Genuine joint-procurement notices (more than one distinct
+# buyer organisation) still correctly produce one row per buyer.
 
 PREFIX cccev: <http://data.europa.eu/m8g/>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
@@ -8,20 +18,17 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT DISTINCT ?publicationDate ?publicationNumber ?formType ?procedureType ?legalName ?country
+SELECT ?publicationDate ?publicationNumber ?procedureType (SAMPLE(?legalName) AS ?legalName) ?country
 
 WHERE {
 
   FILTER (?publicationDate = "2024-11-04"^^xsd:date)
-  # Filter for competition notices only
-  FILTER (?formTypeUri = <http://publications.europa.eu/resource/authority/form-type/competition>)
 
   GRAPH ?g {
     # Get notice details and link to procedure and buyer
-    ?notice a epo:Notice ;
+    ?notice a epo:CompetitionNotice ;
             epo:hasPublicationDate ?publicationDate ;
             epo:hasNoticePublicationNumber ?publicationNumber ;
-            epo:hasFormType ?formTypeUri ;
             epo:refersToProcedure ?procedure ;
             epo:announcesRole | epo:refersToRole ?agentInRole .
 
@@ -38,12 +45,10 @@ WHERE {
   }
 
   # Resolve labels in English
-  ?formTypeUri skos:prefLabel ?formType .
-  FILTER (lang(?formType) = "en")
-
   ?procedureTypeUri skos:prefLabel ?procedureType .
   FILTER (lang(?procedureType) = "en")
 
   ?countryUri skos:prefLabel ?country .
   FILTER (lang(?country) = "en")
 }
+GROUP BY ?publicationDate ?publicationNumber ?procedureType ?organization ?country
