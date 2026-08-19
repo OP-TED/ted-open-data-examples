@@ -127,7 +127,7 @@ queries:
 
  - category: Stats
    title: Top buyers by notice count
-   description: This query retrieves the top 10 buyers by notice count for a specific date range.
+   description: This query retrieves the top 10 buyers (grouped by name and country) by notice count for a specific date range. Known limitation: buyers whose legal name is recorded in more than one language are counted as separate buyers. Refer to the known issues and limitations page - https://docs.ted.europa.eu/ODS/latest/querying/known_issues.html .
    sparql: queries/top-buyers-by-notice-count.sparql
 
  - category: Stats
