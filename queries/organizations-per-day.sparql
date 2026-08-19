@@ -1,17 +1,29 @@
 # Retrieve organisations and their roles for notices published on a specific date.
 # Returns: publication number, organisation name, and role type (e.g. Buyer, Tenderer).
 # Change the date below to query a different day.
+#
+# Note: Groups by the string value of the legal name (STR(?legalName)),
+# ignoring its language tag, instead of hard-filtering to lang="en" or
+# grouping by organisation URI.
+# - A hard "en" filter silently drops notices whose organisation names are
+#   only available in a non-English language.
+# - Grouping by organisation URI does not work either: the same real-world
+#   organisation gets a separate URI per tender/lot within a single notice
+#   (e.g. a supplier bidding on 6 lots gets 6 different organisation URIs),
+#   so URI-based grouping still produces duplicate rows for that supplier.
+# Grouping by the name string collapses both same-organisation-multiple-lots
+# duplicates and same-organisation-multiple-languages duplicates into a
+# single row.
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX org: <http://www.w3.org/ns/org#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT DISTINCT ?publicationNumber ?legalName ?role
+SELECT ?publicationNumber ?role (SAMPLE(?legalName) AS ?legalName)
 
 WHERE {
 
   FILTER (?publicationDate = "2024-11-04"^^xsd:date)
-  FILTER(lang(?legalName) = "en")
 
   GRAPH ?g {
     # Get notice and its associated roles (both announced and referred)
@@ -22,6 +34,10 @@ WHERE {
 
     # Get the organisation playing the role
     ?agentInRole a ?role ;
-                 epo:playedBy / epo:hasLegalName ?legalName .
+                 epo:playedBy ?org .
+
+    ?org epo:hasLegalName ?legalName .
   }
+  BIND(STR(?legalName) AS ?legalNameStr)
 }
+GROUP BY ?publicationNumber ?role ?legalNameStr

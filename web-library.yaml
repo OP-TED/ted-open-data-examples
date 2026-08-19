@@ -57,7 +57,7 @@ queries:
    
  - category: Organisations
    title: Organisations and their roles for notices published on a specific date
-   description: This query retrieves information about organisations that are announced in procurement notices published on a specific date.
+   description: This query retrieves information about organisations that are announced in procurement notices published on a specific date, including notices whose organisation names are only available in a non-English language.
    sparql: queries/organizations-per-day.sparql 
 
  - category: Organisations
