@@ -117,7 +117,7 @@ queries:
 
  - category: Stats
    title: Notice count per buyer
-   description: This query retrieves the count of notices per buyer for a specific date, ordered by highest count.
+   description: This query retrieves the count of notices per buyer (grouped by name and country) for a specific date, ordered by highest count. Known limitation: buyers whose legal name is recorded in more than one language are counted as separate buyers. Refer to the known issues and limitations page - https://docs.ted.europa.eu/ODS/latest/querying/known_issues.html .
    sparql: queries/notice-count-per-buyer.sparql
 
  - category: Stats
