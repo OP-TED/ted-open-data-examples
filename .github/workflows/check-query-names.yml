@@ -1,25 +1,19 @@
 name: Check query basename uniqueness
 
-# The ted-open-data web app's query library fetcher keys a JSON lookup
-# table by the basename of each entry's `sparql:` path
-# (query.sparql.split('/').pop()), not the full path. Two entries with
-# different paths but the same filename would silently collide in the
-# web app with no error. This workflow catches that before merge.
+# The `.sparql` files are a shared pool that several tools draw from, and a
+# filename is how a query is referred to outside the index that lists it. Two
+# queries called `notices-per-day.sparql` in different folders are therefore
+# two things with one name, whoever is doing the referring.
+#
+# Runs on every pull request, with no path filter. A required check that only
+# runs sometimes cannot be satisfied the rest of the time: nothing reports,
+# and the pull request waits for a status that will never arrive. The script
+# reads one YAML file, so running it always costs seconds.
 
 on:
   pull_request:
-    paths:
-      - 'web-library.yaml'
-      - 'queries/**'
-      - 'ci/check_unique_basenames.py'
-      - '.github/workflows/check-query-names.yml'
   push:
     branches: [main, develop]
-    paths:
-      - 'web-library.yaml'
-      - 'queries/**'
-      - 'ci/check_unique_basenames.py'
-      - '.github/workflows/check-query-names.yml'
 
 jobs:
   check-basenames:
