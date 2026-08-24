@@ -65,11 +65,23 @@ A consumer typically:
 
 See the header comment in [`llm-knowledge.yaml`](llm-knowledge.yaml). Each entry describes the *intent* the example answers, the ePO terms used, and any gotchas worth grounding the assistant on.
 
-## Contributing
+## Maintaining the library
 
-See [`CONTRIBUTING.md`](CONTRIBUTING.md). In short: open a PR against `develop`; entries are published when `develop` merges to `main`.
+Every query here is published as it stands: it can be opened, copied and run in any SPARQL client unchanged. Keeping it that way is the main thing to watch when editing the library. See [`CONTRIBUTING.md`](CONTRIBUTING.md) for how to write a query, and what to check before opening a pull request.
 
-When `develop` merges to `main`, a GitHub Action ([reindex-queries.yml](.github/workflows/reindex-queries.yml)) automatically refreshes the TED Open Data Assistant's RAG index from `web-library.yaml` so newly added queries become available to the assistant. No manual reindexing step is needed.
+Open a pull request against `develop`; entries are published when `develop` is merged to `main`. No release of the web app is needed.
+
+A query can also let readers change its values without editing SPARQL, by naming a variable in a comment:
+
+```sparql
+# ?publicationDate: Published on
+...
+FILTER (?publicationDate = "2024-11-04"^^xsd:date)
+```
+
+Only the label is declared; the kind of field and the starting value come from the query. Two variables on one line — `# ?startDate, ?endDate: Publication date` — are the two ends of a range. A query without such a comment is unchanged. See [Parameterisation](CONTRIBUTING.md#parameterisation).
+
+When `develop` is merged to `main`, a GitHub Action ([reindex-queries.yml](.github/workflows/reindex-queries.yml)) refreshes the TED Open Data Assistant's RAG index from `web-library.yaml`, so newly added queries become available to the assistant. No manual reindexing is needed.
 
 ## License
 

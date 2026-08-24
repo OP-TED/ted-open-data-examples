@@ -1,6 +1,7 @@
 # Retrieve the lots associated to a specific procedure.
 # Returns: procedure identifier, lot identifier, lot title, and main CPV code.
 # Change the procedure identifier below to query a different procedure.
+# ?procedureIdentifier: Procedure identifier
 
 PREFIX adms: <http://www.w3.org/ns/adms#>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>

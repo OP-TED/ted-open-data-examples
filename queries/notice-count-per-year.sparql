@@ -1,6 +1,7 @@
 # Retrieves the count of distinct notices per year for a specific date range.
 # Returns: year and the number of notices.
 # Change the date range as per your requirements.
+# ?publicationDate: Publication year
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>

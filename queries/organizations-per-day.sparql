@@ -1,6 +1,7 @@
 # Retrieve organisations and their roles for notices published on a specific date.
 # Returns: publication number, organisation name, and role type (e.g. Buyer, Tenderer).
 # Change the date below to query a different day.
+# ?publicationDate: Publication date
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX org: <http://www.w3.org/ns/org#>

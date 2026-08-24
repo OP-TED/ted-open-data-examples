@@ -1,6 +1,7 @@
 # Retrieve the estimated amounts of procedures published on a specific date.
 # Returns: publication number, form type, procedure identifier, estimated amount, and currency.
 # Change the date below to query a different day.
+# ?publicationDate: Publication date
 
 PREFIX adms: <http://www.w3.org/ns/adms#>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
