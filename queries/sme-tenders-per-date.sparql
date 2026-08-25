@@ -1,6 +1,7 @@
 # Retrieves the total number of tenders from SMEs per publication date for a specific date range.
 # Returns: publication date and the total number of tenders from SMEs.
 # Change the date range as per your requirements.
+# ?pubDate: Publication date
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>

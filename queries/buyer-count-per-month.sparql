@@ -1,6 +1,7 @@
 # Retrieves the count of distinct buyers per month for a specific year.
 # Returns: month (YYYY-MM) and the buyer count.
 # Change the date range as per your requirements.
+# ?publicationDate: Publication month
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>

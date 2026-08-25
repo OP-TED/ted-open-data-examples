@@ -2,6 +2,7 @@
 # Joins TED notice counts per buyer country with Wikidata population data using a federated query.
 # Returns: buyer country, notice count, population, and notices per million population.
 # Change the date range as per your requirements.
+# ?publicationDate: Publication date
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX m8g: <http://data.europa.eu/m8g/>

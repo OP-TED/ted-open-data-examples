@@ -1,6 +1,7 @@
 # Retrieve the place of performance (country) of procedures published on a specific date.
 # Returns: publication date, procedure identifier, and country code.
 # Change the date below to query a different day.
+# ?publicationDate: Publication date
 
 PREFIX adms: <http://www.w3.org/ns/adms#>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>

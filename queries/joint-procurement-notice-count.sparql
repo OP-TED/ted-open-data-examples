@@ -1,6 +1,7 @@
 # Retrieves the count of notices that have more than one buyer (joint procurement) for a specific date.
 # Returns: the total number of such notices.
 # Change the publication date as per your requirements.
+# ?publicationDate: Publication date
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>

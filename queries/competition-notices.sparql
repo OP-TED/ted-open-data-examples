@@ -1,6 +1,7 @@
 # Retrieve competition notices published on a specific date, including
 # procedure type, buyer name, and buyer country.
 # Change the date below to query a different day.
+# ?publicationDate: Publication date
 
 PREFIX cccev: <http://data.europa.eu/m8g/>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>

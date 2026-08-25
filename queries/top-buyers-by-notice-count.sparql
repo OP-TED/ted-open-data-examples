@@ -1,6 +1,7 @@
 # Retrieves the top 10 buyers by notice count for a specific date range.
 # Returns: buyer name and the notice count, ordered by highest count.
 # Change the date range as per your requirements.
+# ?publicationDate: Publication date
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>

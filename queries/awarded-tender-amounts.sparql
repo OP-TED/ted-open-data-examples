@@ -6,6 +6,7 @@
 # Note: The notice, procedure, and tender are linked implicitly through
 # the named graph. Adding explicit links (e.g. epo:announcesRole) would
 # make the query more precise but significantly slower with the OPTIONAL blocks.
+# ?procedureIdentifier: Procedure identifier
 
 PREFIX adms: <http://www.w3.org/ns/adms#>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>

@@ -2,6 +2,7 @@
 # Returns whether the place is "Anywhere", "Anywhere in the given country",
 # "Anywhere in the EEA", etc., plus the specific country if available.
 # Change the date below to query a different day.
+# ?publicationDate: Publication date
 
 PREFIX adms: <http://www.w3.org/ns/adms#>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>

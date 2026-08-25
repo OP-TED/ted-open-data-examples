@@ -1,6 +1,7 @@
 # Retrieve notices published during a specific period with their procedure type,
 # notice type, and form type.
 # Change the start and end dates below to adjust the period.
+# ?startDate, ?endDate: Publication date
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>

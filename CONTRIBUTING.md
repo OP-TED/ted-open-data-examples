@@ -34,8 +34,16 @@ The live tools read from the `main` branch. Open pull requests against `develop`
 
 1. Edit the `.sparql` file.
 2. If the title or description need updating, edit the relevant index file too.
-3. Test the query on the [TED Open Data Service](https://data.ted.europa.eu/) before submitting.
-4. Open a pull request against `develop` describing what you changed and why.
+3. Open a pull request against `develop` describing what you changed and why.
+
+## Before opening a pull request
+
+Check each query you have changed:
+
+- it runs on the [TED Open Data Service](https://data.ted.europa.eu/) and returns results
+- its dates are recent enough that a first-time reader sees something
+- every variable you named appears as a field, and nothing else does
+- the labels are plain English, not variable names: "Published on", not "publicationDate"
 
 ## Writing guidelines
 
@@ -91,6 +99,10 @@ Always include explicit links between entities, even when the named graph bounda
 
 Explicit joins improve query performance and make the query logic clear to readers.
 
+### Variable names
+
+Use the same name for the same thing in every query: `?publicationDate`, not `?pubDate` in some of them. Readers move between these queries, and where no label is given the form falls back to the variable name.
+
 ### Prefixes
 
 Use the standard prefixes consistently:
@@ -111,14 +123,62 @@ Only include prefixes that are actually used in the query.
 
 ### Parameterisation
 
-Use date filters like `FILTER (?publicationDate = "2024-11-04"^^xsd:date)` with a recent date so users can see results immediately. Users will change the date to suit their needs.
-
-For queries that filter by a specific identifier (e.g. publication number or procedure ID), use `VALUES` with a real example value and add a comment explaining what to change:
+Give every query a real value, so that it runs as published and returns something. Use a recent date, a publication number that exists, an identifier that resolves.
 
 ```sparql
-# Change the publication number below to look up a different notice
+FILTER (?publicationDate = "2024-11-04"^^xsd:date)
 VALUES ?publicationNumber { "00676595-2024" }
 ```
+
+Then name the variables a reader may change, in a comment:
+
+```sparql
+# ?publicationDate: Published on
+```
+
+The web app offers a field for each variable named this way, so a reader can change the value without editing SPARQL. You declare only the label; the rest comes from the query:
+
+| What the form needs | Where it comes from |
+|---|---|
+| the kind of field | the datatype of the literal: `xsd:date` gives a date field, `xsd:boolean` a checkbox |
+| the starting value | the literal already in the query |
+| whether it is a range | one `&&` joining two bounds, or two variables on one line |
+
+A query with no such comment gets no form, and is otherwise unchanged. Only the variables you name are offered, and only where the variable itself is compared with a literal. In `FILTER(lang(?country) = "en")` the comparison is with a function of `?country`, so `"en"` is never offered.
+
+#### Ranges
+
+Two bounds on one variable are a range when a single `&&` joins them:
+
+```sparql
+# ?publicationDate: Publication date
+FILTER (?publicationDate >= "2025-01-01"^^xsd:date && ?publicationDate <= "2025-01-31"^^xsd:date)
+```
+
+> **Publication date range**
+> Between `2025-01-01` and `2025-01-31`
+
+`>=` and `<=` appear as *between … and …*, `>` and `<` as *after …* and *… before …*. The form refuses a range given the wrong way round, so keep the query's own values in order.
+
+The `&&` is what makes it a range. Two separate `FILTER`s constrain the same variable just as well, but nothing in them says the two limits are the ends of one period, so each gets a field of its own and neither is checked against the other. Join them if you mean a range.
+
+Where the two ends are separate variables, declare both on one line, the start first:
+
+```sparql
+# ?startDate, ?endDate: Publication date
+VALUES (?startDate ?endDate) { ("2024-11-04"^^xsd:date "2024-11-05"^^xsd:date) }
+FILTER (?publicationDate >= ?startDate && ?publicationDate <= ?endDate)
+```
+
+That line is a statement, not a guess: it says these two are the ends of one range, wherever the query puts them. Declared separately, on two lines, they stay two independent fields.
+
+Everything else — bounds in different `FILTER`s, either side of a `||`, in opposite arms of a `UNION` — is offered as ordinary fields with no ordering check. That is deliberate: the app never refuses to run a query on the strength of a guess about what its bounds mean together.
+
+#### What cannot be offered
+
+Any literal can be offered; a datatype with no field of its own gets a plain text box.
+
+IRIs cannot. A full IRI is not something anyone can type into a form, so a variable bound to one gets no field, even if you name it. Name only the parts a reader can sensibly fill in.
 
 ## Web library categories
 
