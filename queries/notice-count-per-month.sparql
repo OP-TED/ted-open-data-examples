@@ -1,7 +1,7 @@
 # Retrieves the count of distinct notices per month for a specific date range.
 # Returns: month (YYYY-MM) and the number of notices.
 # Change the date range as per your requirements.
-# ?publicationDate: Publication month
+# ?publicationDate: Publication date
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
