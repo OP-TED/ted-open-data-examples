@@ -1,6 +1,7 @@
 # Retrieve the full RDF graph of a notice by its publication number.
 # Returns all triples from the notice's named graph.
 # Change the publication number below to retrieve a different notice.
+# ?publicationNumber: Publication number
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 

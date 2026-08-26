@@ -2,6 +2,7 @@
 # Handles both individual organisations and members of organisation groups.
 # Returns: month (YYYY-MM) and the number of tenderer organisations.
 # Change the date range as per your requirements.
+# ?publicationDate: Publication date
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX org: <http://www.w3.org/ns/org#>

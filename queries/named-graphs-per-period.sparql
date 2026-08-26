@@ -3,6 +3,7 @@
 # links to the TED website and XML source.
 # Returns: date, journal number, METS graph, notice graph, TED URL, and XML URL.
 # Change the date range below to adjust the period.
+# ?date: Period
 
 PREFIX cdm: <http://publications.europa.eu/ontology/cdm#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>

@@ -1,6 +1,7 @@
 # Retrieve notices published on a specific date with their procedure type,
 # notice type, and form type.
 # Change the date below to query a different day.
+# ?publicationDate: Publication date
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>

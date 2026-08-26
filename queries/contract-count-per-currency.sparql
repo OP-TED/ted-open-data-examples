@@ -1,6 +1,7 @@
 # Retrieves the count of contracts per currency for a specific date range.
 # Returns: contract currency and the number of contracts, ordered by highest count.
 # Change the date range as per your requirements.
+# ?contractConclusionDate: Contract conclusion date
 
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>

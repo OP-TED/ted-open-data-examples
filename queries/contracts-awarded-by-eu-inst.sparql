@@ -6,6 +6,7 @@
 #          https://ted.europa.eu/en/simap/contracts-awarded-by-eu-institutions?year=2026&eu-institution=ALL
 # 2: TED provides both old forms and eForms whereas this query currently fetches only eForms.
 # 3: Query executes successfully with LIMIT 1000 or for a single date range 
+# ?publicationDate: Publication date
 
 PREFIX adms: <http://www.w3.org/ns/adms#>
 PREFIX blt: <http://publications.europa.eu/resource/authority/buyer-legal-type/>

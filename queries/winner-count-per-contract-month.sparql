@@ -2,6 +2,7 @@
 # Joins contracts to notices through lots. Handles both individual organisations and members of organisation groups.
 # Returns: contract conclusion month (YYYY-MM) and the number of winner organisations.
 # Change the date range as per your requirements.
+# ?contractConclusionDate: Contract conclusion date
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX org: <http://www.w3.org/ns/org#>

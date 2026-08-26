@@ -1,6 +1,7 @@
 # Retrieve buyers from specific countries for notices published on a specific date.
 # Returns: publication number, buyer name, country, legal type, and main activity.
 # Change the date and country filter below to adjust the query.
+# ?publicationDate: Publication date
 
 PREFIX cccev: <http://data.europa.eu/m8g/>
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>

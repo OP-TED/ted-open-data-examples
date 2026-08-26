@@ -1,6 +1,7 @@
 # Retrieves the count of notices per publication date and notice type for a specific date range.
 # Returns: publication date, notice type, and the notice count.
 # Change the date range as per your requirements.
+# ?startDate, ?endDate: Publication date
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>

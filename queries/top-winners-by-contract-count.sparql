@@ -2,6 +2,7 @@
 # Joins contracts to notices through lots. Handles both individual organisations and organisation groups.
 # Returns: winner name and the number of contracts, ordered by highest count.
 # Change the date range as per your requirements.
+# ?contractConclusionDate: Contract conclusion date
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX org: <http://www.w3.org/ns/org#>
