@@ -2,12 +2,16 @@
 # Filters for rank 1 (winner) and "selected" award status.
 # Returns: publication number, winner name, amount, and currency.
 # Change the date filter below to adjust the query.
+#
+# Note: Groups by tender and picks one winner legal-name literal via SAMPLE.
+# A winner whose legal name is recorded in more than one language would
+# otherwise produce duplicate rows.
 
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?publicationNumber ?winnerLegalName ?amount ?currency
+SELECT ?publicationNumber (SAMPLE(?winnerLegalName) AS ?winnerLegalName) ?amount ?currency
 WHERE {
   GRAPH ?g {
     # Notice - uses ResultNotice to avoid fetching competition notices
@@ -22,8 +26,10 @@ WHERE {
                                                       epo:concernsTender ?tender ] .
 
     # Tender -> Winner
-    ?tender epo:isSubmitedBy / epo:playedBy / epo:hasLegalName ?winnerLegalName ;
-            epo:hasFinancialOfferValue ?financialOfferValue .
+    ?tender epo:isSubmitedBy / epo:playedBy ?winnerOrg .
+    ?winnerOrg epo:hasLegalName ?winnerLegalName .
+
+    ?tender epo:hasFinancialOfferValue ?financialOfferValue .
 
     # Financial value
     ?financialOfferValue epo:hasAmountValue ?amount ;
@@ -32,3 +38,4 @@ WHERE {
 
   ?currencyUri dc:identifier ?currency .
 }
+GROUP BY ?publicationNumber ?tender ?amount ?currency
