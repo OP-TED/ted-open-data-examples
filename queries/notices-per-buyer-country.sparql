@@ -2,10 +2,6 @@
 # Returns: publication number, buyer name, country, legal type, and main activity.
 # Change the date and country filter below to adjust the query.
 # ?publicationDate: Publication date
-#
-# Note: Groups by (publicationNumber, buyer organisation URI) and picks one
-# legal-name literal via SAMPLE. A buyer whose legal name is recorded in
-# more than one language would otherwise produce duplicate rows.
 
 PREFIX cccev: <http://data.europa.eu/m8g/>
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
@@ -13,7 +9,7 @@ PREFIX org: <http://www.w3.org/ns/org#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?publicationNumber ?publicationDate (SAMPLE(?legalName) AS ?legalName) ?country ?legalType ?mainActivity
+SELECT ?publicationNumber ?publicationDate ?legalName ?country ?legalType ?mainActivity
 
 WHERE {
 
@@ -49,4 +45,3 @@ WHERE {
   ?mainActivityUri skos:prefLabel ?mainActivity .
   FILTER(lang(?mainActivity) = "en")
 }
-GROUP BY ?publicationNumber ?publicationDate ?organization ?country ?legalType ?mainActivity
