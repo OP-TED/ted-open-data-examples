@@ -121,8 +121,8 @@ queries:
    sparql: queries/notice-count-per-buyer.sparql
 
  - category: Stats
-   title: Joint procurement notice count
-   description: This query retrieves the count of notices that have more than one buyer (joint procurement) for a specific date.
+   title: Joint procurement notice count per date
+   description: This query retrieves, per publication date, the count of notices that have more than one buyer (joint procurement) for a date range. Defaults to the last 7 days excluding today.
    sparql: queries/joint-procurement-notice-count.sparql
 
  - category: Stats
