@@ -166,6 +166,11 @@ queries:
    sparql: queries/top-winners-by-contract-count.sparql
 
  - category: Stats
+   title: Top CPV categories by notice count
+   description: This query retrieves the top 10 procurement categories (main CPV - Common Procurement Vocabulary - classification) by notice count for a date range. Defaults to the last 7 days excluding today.
+   sparql: queries/top-cpv-categories-by-notice-count.sparql
+
+ - category: Stats
    title: SME tenders per date
    description: This query retrieves the total number of tenders from SMEs per publication date for a specific date range.
    sparql: queries/sme-tenders-per-date.sparql
