@@ -6,6 +6,10 @@
 # Note: The notice, procedure, and tender are linked implicitly through
 # the named graph. Adding explicit links (e.g. epo:announcesRole) would
 # make the query more precise but significantly slower with the OPTIONAL blocks.
+#
+# Groups by tender and picks one tenderer legal-name literal via SAMPLE.
+# A tenderer whose legal name is recorded in more than one language would
+# otherwise produce duplicate rows.
 # ?procedureIdentifier: Procedure identifier
 
 PREFIX adms: <http://www.w3.org/ns/adms#>
@@ -16,7 +20,7 @@ PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?procedureIdentifier ?publicationDate ?publicationNumber ?tenderIdentifier ?tendererLegalName ?offerAmountValue ?currency ?lotGroupIdentifier ?lotIdentifier
+SELECT ?procedureIdentifier ?publicationDate ?publicationNumber ?tenderIdentifier (SAMPLE(?tendererLegalName) AS ?tendererLegalName) ?offerAmountValue ?currency (SAMPLE(?lotGroupIdentifier) AS ?lotGroupIdentifier) (SAMPLE(?lotIdentifier) AS ?lotIdentifier)
 
 WHERE {
 
@@ -64,4 +68,5 @@ WHERE {
   ?currencyUri skos:prefLabel ?currency .
   FILTER (lang(?currency) = "en")
 }
+GROUP BY ?procedureIdentifier ?publicationDate ?publicationNumber ?tender ?tenderIdentifier ?offerAmountValue ?currency
 ORDER BY ?publicationNumber ?lotGroupIdentifier ?lotIdentifier

@@ -17,7 +17,7 @@ queries:
    
  - category: Notices
    title: Information about competition notices published on a specific date
-   description: This query retrieves information (Publication number, Procedure type, Buyer Legal name and Buyer country) about all competition notices published on a specific day.
+   description: This query retrieves information (Publication number, Procedure type, Buyer Legal name and Buyer country) about all competition notices published on a specific day. Notices with more than one row have more than one buyer (joint procurement); a buyer's name recorded in more than one language is deduplicated to a single row.
    sparql: queries/competition-notices.sparql
 
  - category: Tenders
