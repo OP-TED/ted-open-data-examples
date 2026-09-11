@@ -171,6 +171,11 @@ queries:
    sparql: queries/top-cpv-categories-by-notice-count.sparql
 
  - category: Stats
+   title: Top buyers by awarded value
+   description: This query retrieves the top 10 buyers by total awarded value (converted to EUR using an inline exchange-rate table) for a date range. A notice-level total is split evenly across its buyers for joint procurement; amounts in currencies not in the rate table are excluded. Defaults to the last 7 days excluding today. Note: this query is slow (about 2 minutes for a month, 5 for six months) and wide ranges may time out.
+   sparql: queries/top-buyers-by-awarded-value.sparql
+
+ - category: Stats
    title: SME tenders per date
    description: This query retrieves the total number of tenders from SMEs per publication date for a specific date range.
    sparql: queries/sme-tenders-per-date.sparql
