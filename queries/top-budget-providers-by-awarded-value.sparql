@@ -1,0 +1,118 @@
+# Retrieves the top 10 budget providers by total awarded value (converted to EUR) for a date range.
+# Returns: budget provider name and the total awarded value in EUR, ordered by highest value.
+# Defaults to the last 7 days excluding today; change the range below to query a different period.
+#
+# Note: A notice's total awarded value (epo:hasTotalAwardedValue) is a notice-level
+# figure. For notices with more than one budget provider, that total is split
+# evenly across the notice's budget providers (amount / number of budget providers on
+# the notice) so it is not counted in full for each budget provider.
+#
+# Currency conversion: the TED Open Data Service stores financial values only in their
+# original currency (see the known issues and limitations page -
+# https://docs.ted.europa.eu/ODS/latest/querying/known_issues.html), so this query
+# converts to EUR using the inline exchange-rate table below (rates as of June 2026).
+# These rates are approximate and go stale over time; update them as needed. Amounts in
+# a currency that is not present in the table are EXCLUDED from the totals (a budget
+# provider's total may therefore be understated if some of its awards were in an unlisted
+# currency).
+#
+# Performance: tested for a one-year range (2025); returns results in about 2 minutes.
+# Wider ranges are slower and may approach the endpoint's timeout, and response times can
+# vary with server load. Keep the range reasonable (the default is the last 7 days).
+
+PREFIX epo: <http://data.europa.eu/a4g/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+SELECT ?budgetProviderName (SUM(?amountEURShare) AS ?totalAwardedEUR)
+WHERE {
+  GRAPH ?g {
+    ?notice a epo:ResultNotice ;
+            epo:announcesRole | epo:refersToRole ?budgetProvider ;
+            epo:hasPublicationDate ?pubDate .
+    # Default range: the last 7 days, excluding today (7 days ago through yesterday).
+    BIND (xsd:date(NOW()) - "P7D"^^xsd:duration AS ?publicationStartDate)
+    BIND (xsd:date(NOW()) - "P1D"^^xsd:duration AS ?publicationEndDate)
+    # To use a fixed range instead, comment out the two BINDs above and uncomment the line below:
+    # VALUES (?publicationStartDate ?publicationEndDate) { ("2025-01-01"^^xsd:date "2025-01-07"^^xsd:date) }
+    FILTER(?pubDate >= ?publicationStartDate && ?pubDate <= ?publicationEndDate)
+
+    ?notice epo:announcesNoticeAwardInformation / epo:hasTotalAwardedValue ?value .
+    ?value epo:hasAmountValue ?amount ;
+           epo:hasCurrency ?currencyURI .
+
+    ?budgetProvider a epo:BudgetProvider ;
+                    epo:playedBy ?organization .
+    ?organization epo:hasLegalName ?budgetProviderName .
+
+    # Number of distinct budget provider organisations on this notice, so a notice-level
+    # total awarded value can be split evenly across its budget providers instead of
+    # being counted in full for each one.
+    {
+      SELECT ?notice (COUNT(DISTINCT ?bpOrgForCount) AS ?budgetProviderCount)
+      WHERE {
+        ?notice epo:announcesRole | epo:refersToRole ?bpForCount .
+        ?bpForCount a epo:BudgetProvider ;
+                    epo:playedBy ?bpOrgForCount .
+      }
+      GROUP BY ?notice
+    }
+  }
+
+  # Exchange rate lookup table (rates to EUR) as of June 2026
+  VALUES (?currency ?rate) {
+    ("EUR" 1.0)
+    ("AED" 0.251)
+    ("ALL" 0.0098)
+    ("AMD" 0.0024)
+    ("ANG" 0.513)
+    ("AUD" 0.60)
+    ("BAM" 0.511)
+    ("BGN" 0.511)
+    ("BRL" 0.163)
+    ("CAD" 0.68)
+    ("CHF" 1.05)
+    ("CNY" 0.127)
+    ("CZK" 0.040)
+    ("DKK" 0.134)
+    ("EGP" 0.019)
+    ("GBP" 1.17)
+    ("HKD" 0.118)
+    ("HUF" 0.0025)
+    ("INR" 0.011)
+    ("ISK" 0.0067)
+    ("JPY" 0.0062)
+    ("LSL" 0.051)
+    ("MAD" 0.092)
+    ("MDL" 0.052)
+    ("MGA" 0.0002)
+    ("MKD" 0.016)
+    ("MYR" 0.21)
+    ("NOK" 0.085)
+    ("PLN" 0.233)
+    ("RON" 0.201)
+    ("RSD" 0.0085)
+    ("RWF" 0.0007)
+    ("SEK" 0.088)
+    ("THB" 0.027)
+    ("TND" 0.30)
+    ("TRY" 0.027)
+    ("TZS" 0.00036)
+    ("UAH" 0.022)
+    ("USD" 0.92)
+    ("USN" 0.92)
+    ("UZS" 0.000073)
+    ("XAF" 0.00152)
+    ("XOF" 0.00152)
+  }
+  ?currencyURI dc:identifier ?currency .
+
+  # Guard against notices with a total awarded value but no resolvable budget provider
+  # count, which would otherwise cause a division-by-zero error.
+  FILTER (BOUND(?amount) && BOUND(?budgetProviderCount) && ?budgetProviderCount > 0)
+
+  BIND(?amount * ?rate / ?budgetProviderCount AS ?amountEURShare)
+}
+GROUP BY ?budgetProviderName
+ORDER BY DESC(?totalAwardedEUR)
+LIMIT 10
