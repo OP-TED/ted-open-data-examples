@@ -1,0 +1,230 @@
+# Retrieves the top 10 budget providers by total awarded value (converted to EUR) for a date range.
+# Returns: budget provider name and the total awarded value in EUR, ordered by highest value.
+# Defaults to the last 7 days excluding today; change the range below to query a different period.
+#
+# This query's structure (grain, joins, winning-tender rule, currency table, name
+# normalisation) is mirrored in queries/top-payment-executors-by-awarded-value.sparql.
+# If you change any of that logic here, apply the same change there, and re-verify both
+# against the live endpoint - the two are hand-duplicated, not generated from one
+# source, and have drifted out of sync before.
+#
+# Grain: budget providers are a LOT-RESULT-level role (mapped from the eForms Financing
+# Party on each efac:LotResult), and different lot results within one notice can have
+# different budget providers. So this query works at the lot-result level, NOT the
+# notice level: the value used is the winning tender's financial offer value for that
+# lot result (LotAwardOutcome -> TenderAwardOutcome -> Tender -> financial offer value),
+# and that per-lot-result value is split evenly across the budget providers of the SAME
+# lot result (amount / number of budget providers on that lot result). This avoids
+# attributing a notice-level total (epo:hasTotalAwardedValue) to lot-level roles.
+#
+# Join: the notice is linked to its lot result explicitly through the shared Lot
+# (notice epo:refersToLot ?lot; lot award outcome epo:concernsLot ?lot), not through
+# named-graph co-occurrence. The budget-provider count is computed in its own scoped
+# subquery ahead of the tender-value joins; nesting it inside the main join pattern is
+# much slower and can time out.
+#
+# Winning tender only: a lot can have several lot award outcomes, one per tenderer that
+# competed for it (not just the winner) - verified against real notices, both as several
+# tender award outcomes under ONE lot award outcome, and as several lot award outcomes
+# each with one tenderer, all concerning the SAME lot. Summing every tender's value would
+# count non-winning tenders' values too. To keep only the winning tender(s), per LOT (not
+# per lot award outcome):
+#   - if any tender on the lot has epo:hasAwardRank 1, keep all such tenders (a lot can
+#     legitimately have more than one winner, e.g. a multi-award framework - verified
+#     against a real notice with dozens of rank-1 tenders at distinct amounts);
+#   - otherwise, if ranking was not used on that lot at all (no tender has any rank) and
+#     there is exactly one tender on the lot, keep that one;
+#   - otherwise (ranked with no rank-1 tender, e.g. the winner's rank was withheld for
+#     privacy, or unranked with more than one tender) the lot is genuinely ambiguous and
+#     is excluded rather than guessed at.
+#
+# Coverage: the budget provider (eForms Financing Party) is an OPTIONAL field. Measured
+# against a sample week (2026-07-01 to 2026-07-07): about 653 of 30,037 lot award
+# outcomes (roughly 2%) declared a budget provider. This query only covers that small
+# subset, so it is a "top budget providers among those declared", not a ranking over
+# all awarded value in the date range. The exact share will vary by period.
+#
+# Currency conversion: the TED Open Data Service stores financial values only in their
+# original currency (see the known issues and limitations page -
+# https://docs.ted.europa.eu/ODS/latest/querying/known_issues.html), so this query
+# converts to EUR using the inline exchange-rate table below (rates as of June 2026).
+# These rates are approximate and go stale over time; update them as needed. Amounts in
+# a currency that is not present in the table are EXCLUDED from the totals (a budget
+# provider's total may therefore be understated if some of its awards were in an
+# unlisted currency).
+#
+# Outliers: some notices carry an implausibly large hasFinancialOfferValue for their
+# winning tender - for example, notice 00840791-2025 has a winning tender value of
+# 260,000,000,000 (EUR). This is a data quality issue in the notice itself, not a query
+# error, and such notices can dominate the top 10.
+#
+# Duplicate names: the same real organisation can be recorded with a different name
+# across notices - a leading/trailing (ASCII) space or a difference in capitalisation
+# are the most common cases. To avoid splitting one organisation's total across two rows
+# for just these two cases, the query groups by a normalised form of the name
+# (?budgetProviderKey: outer ASCII spaces stripped, upper-cased) rather than the name
+# as-is, and displays one of the original, differently-spelled variants (picked
+# arbitrarily via SAMPLE) as ?budgetProviderName. This does not catch other kinds of
+# name variation - non-breaking spaces, internal spacing/punctuation differences,
+# abbreviations, translations. One organisation in this data alone has well over a dozen
+# further spellings that this normalisation does not merge. Check the results for
+# further near-duplicates before treating the ranking as final.
+#
+# Performance: most of the cost is in the winning-tender subquery, which is not scoped
+# to the date range (see the note above it) - so runtime does not scale much with the
+# size of the range. Timing is also unstable: three consecutive runs of the exact same
+# single-day query took 13, 66 and 94 seconds; a run over 2024-01-01 to 2025-12-31 (2
+# years) took about 104 seconds. A short range is not reliably fast, and one successful
+# timing is not a guarantee of similar timing on a later run. Allow at least a couple of
+# minutes and expect variation.
+
+PREFIX epo: <http://data.europa.eu/a4g/ontology#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+SELECT (SAMPLE(?rawBudgetProviderName) AS ?budgetProviderName) (SUM(?amountEURShare) AS ?totalAwardedEUR)
+WHERE {
+  # Number of distinct budget provider organisations on each lot result in range, so
+  # that lot result's awarded value can be split evenly across its budget providers
+  # instead of being counted in full for each one. Kept as a standalone subquery,
+  # scoped to the same date range, and evaluated ahead of the tender-value joins below.
+  {
+    SELECT ?lotAwardOutcome (COUNT(DISTINCT ?bpOrgForCount) AS ?budgetProviderCount)
+    WHERE {
+      GRAPH ?g {
+        ?notice a epo:ResultNotice ;
+                epo:hasPublicationDate ?pubDate ;
+                epo:refersToLot ?lot .
+        # Default range: the last 7 days, excluding today (7 days ago through yesterday).
+        BIND (xsd:date(NOW()) - "P7D"^^xsd:duration AS ?publicationStartDate)
+        BIND (xsd:date(NOW()) - "P1D"^^xsd:duration AS ?publicationEndDate)
+        # To use a fixed range instead, comment out the two BINDs above and uncomment the line below:
+        # VALUES (?publicationStartDate ?publicationEndDate) { ("2025-01-01"^^xsd:date "2025-01-07"^^xsd:date) }
+        FILTER(?pubDate >= ?publicationStartDate && ?pubDate <= ?publicationEndDate)
+
+        # Explicit join from the notice to the lot result through the shared Lot.
+        ?lotAwardOutcome a epo:LotAwardOutcome ;
+                         epo:concernsLot ?lot ;
+                         rdfs:seeAlso ?bpForCount .
+        ?bpForCount a epo:BudgetProvider ;
+                    epo:playedBy ?bpOrgForCount .
+      }
+    }
+    GROUP BY ?lotAwardOutcome
+  }
+
+  # The winning tender award outcome(s) per lot (see "Winning tender only" above): those
+  # at hasAwardRank 1 if ranking is used on the lot, otherwise the lot's only tender if
+  # ranking is not used at all. Kept as its own subquery so the rule is evaluated once
+  # per lot rather than repeated for every budget provider on it.
+  #
+  # Note: this subquery is not scoped to the date range above - it is joined to the
+  # rest of the query via ?lot and ?tenderAwardOutcome instead. Adding an explicit
+  # date/notice filter here was tried and made the query slower, not faster (likely a
+  # join-order change), so it is left unscoped despite computing over more lots than
+  # strictly needed for a short date range.
+  {
+    SELECT ?lot ?tenderAwardOutcome WHERE {
+      GRAPH ?g3 {
+        ?anyLao epo:concernsLot ?lot ; epo:comprisesTenderAwardOutcome ?tenderAwardOutcome .
+        {
+          SELECT ?lot (COUNT(DISTINCT ?t) AS ?tendersOnLot) (COUNT(DISTINCT ?rankedTender) AS ?rankedTendersOnLot) WHERE {
+            GRAPH ?g4 {
+              ?laoForCount epo:concernsLot ?lot ; epo:comprisesTenderAwardOutcome ?t .
+              OPTIONAL {
+                ?t epo:hasAwardRank ?anyRank .
+                BIND(?t AS ?rankedTender)
+              }
+            }
+          }
+          GROUP BY ?lot
+        }
+        OPTIONAL { ?tenderAwardOutcome epo:hasAwardRank ?rank . }
+        FILTER(
+          (BOUND(?rank) && ?rank = 1)
+          ||
+          (?rankedTendersOnLot = 0 && ?tendersOnLot = 1)
+        )
+      }
+    }
+  }
+
+  # Budget providers for the same lot result as the winning tender award outcome(s)
+  # above, and that tender's financial offer value.
+  GRAPH ?g2 {
+    ?lotAwardOutcome epo:concernsLot ?lot ;
+                     rdfs:seeAlso ?budgetProvider ;
+                     epo:comprisesTenderAwardOutcome ?tenderAwardOutcome .
+    ?tenderAwardOutcome epo:concernsTender ?tender .
+    ?tender epo:hasFinancialOfferValue ?value .
+    ?value epo:hasAmountValue ?amount ;
+           epo:hasCurrency ?currencyURI .
+
+    ?budgetProvider a epo:BudgetProvider ;
+                    epo:playedBy ?organization .
+    ?organization epo:hasLegalName ?rawBudgetProviderName .
+  }
+
+  # Normalise the name for grouping only (see "Duplicate names" above); the displayed
+  # name keeps its original spelling. SPARQL 1.1's TRIM() is not supported here, so
+  # leading/trailing spaces are stripped with REPLACE instead.
+  BIND(UCASE(REPLACE(?rawBudgetProviderName, "^[ ]+|[ ]+$", "")) AS ?budgetProviderKey)
+
+  # Exchange rate lookup table (rates to EUR) as of June 2026
+  VALUES (?currency ?rate) {
+    ("EUR" 1.0)
+    ("AED" 0.251)
+    ("ALL" 0.0098)
+    ("AMD" 0.0024)
+    ("ANG" 0.513)
+    ("AUD" 0.60)
+    ("BAM" 0.511)
+    ("BGN" 0.511)
+    ("BRL" 0.163)
+    ("CAD" 0.68)
+    ("CHF" 1.05)
+    ("CNY" 0.127)
+    ("CZK" 0.040)
+    ("DKK" 0.134)
+    ("EGP" 0.019)
+    ("GBP" 1.17)
+    ("HKD" 0.118)
+    ("HUF" 0.0025)
+    ("INR" 0.011)
+    ("ISK" 0.0067)
+    ("JPY" 0.0062)
+    ("LSL" 0.051)
+    ("MAD" 0.092)
+    ("MDL" 0.052)
+    ("MGA" 0.0002)
+    ("MKD" 0.016)
+    ("MYR" 0.21)
+    ("NOK" 0.085)
+    ("PLN" 0.233)
+    ("RON" 0.201)
+    ("RSD" 0.0085)
+    ("RWF" 0.0007)
+    ("SEK" 0.088)
+    ("THB" 0.027)
+    ("TND" 0.30)
+    ("TRY" 0.027)
+    ("TZS" 0.00036)
+    ("UAH" 0.022)
+    ("USD" 0.92)
+    ("USN" 0.92)
+    ("UZS" 0.000073)
+    ("XAF" 0.00152)
+    ("XOF" 0.00152)
+  }
+  ?currencyURI dc:identifier ?currency .
+
+  # Guard against lot results with a value but no resolvable budget provider count,
+  # which would otherwise cause a division-by-zero error.
+  FILTER (BOUND(?amount) && BOUND(?budgetProviderCount) && ?budgetProviderCount > 0)
+
+  BIND(?amount * ?rate / ?budgetProviderCount AS ?amountEURShare)
+}
+GROUP BY ?budgetProviderKey
+ORDER BY DESC(?totalAwardedEUR)
+LIMIT 10

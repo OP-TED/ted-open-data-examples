@@ -1,34 +1,42 @@
-# Retrieves the count of notices that have more than one buyer (joint procurement) for a specific date.
-# Returns: the total number of such notices.
-# Change the publication date as per your requirements.
-# ?publicationDate: Publication date
+# Retrieves the count of joint-procurement notices (more than one buyer) per publication date, for a date range.
+# Returns: publication date and the number of such notices on that date.
+# Defaults to the last 7 days excluding today; change the range below to query a different period.
 #
 # Note: Counts distinct buyer organisation URIs rather than distinct legal names.
 # Some organisations have their legal name recorded in more than one language
 # (e.g. "Stad Gent"@nl and "Ville de Gand"@fr for the same buyer). Counting
 # distinct names would count such a buyer twice and produce false positives.
+#
+# Tested for the range 2023-01-01 to 2026-08-31; returns results within 30 seconds.
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT (COUNT(DISTINCT ?publicationNumber) AS ?noticeCount)
+SELECT ?publicationDate (COUNT(DISTINCT ?publicationNumber) AS ?jointProcurementNoticeCount)
 WHERE {
   {
-    SELECT ?publicationNumber (COUNT(DISTINCT ?organization) AS ?buyersCount)
+    SELECT ?publicationDate ?publicationNumber
     WHERE {
-      FILTER (?publicationDate = "2025-07-29"^^xsd:date)
+      # Default range: the last 7 days, excluding today (7 days ago through yesterday).
+      BIND (xsd:date(NOW()) - "P7D"^^xsd:duration AS ?publicationStartDate)
+      BIND (xsd:date(NOW()) - "P1D"^^xsd:duration AS ?publicationEndDate)
+      # To use a fixed range instead, comment out the two BINDs above and uncomment the line below:
+      # VALUES (?publicationStartDate ?publicationEndDate) { ("2026-08-01"^^xsd:date "2026-08-31"^^xsd:date) }
+      FILTER (?publicationDate >= ?publicationStartDate && ?publicationDate <= ?publicationEndDate)
 
       GRAPH ?g {
         ?notice a epo:Notice ;
                 epo:hasNoticePublicationNumber ?publicationNumber ;
                 epo:hasPublicationDate ?publicationDate ;
-                epo:refersToRole ?buyer .
+                (epo:announcesRole|epo:refersToRole) ?buyer .
 
         ?buyer a epo:Buyer ;
                epo:playedBy ?organization .
       }
     }
-    GROUP BY ?publicationNumber
+    GROUP BY ?publicationDate ?publicationNumber
     HAVING (COUNT(DISTINCT ?organization) > 1)
   }
 }
+GROUP BY ?publicationDate
+ORDER BY ?publicationDate

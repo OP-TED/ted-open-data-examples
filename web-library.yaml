@@ -121,8 +121,8 @@ queries:
    sparql: queries/notice-count-per-buyer.sparql
 
  - category: Stats
-   title: Joint procurement notice count
-   description: This query retrieves the count of notices that have more than one buyer (joint procurement) for a specific date.
+   title: Joint procurement notice count per date
+   description: This query retrieves, per publication date, the count of notices that have more than one buyer (joint procurement) for a date range. Defaults to the last 7 days excluding today.
    sparql: queries/joint-procurement-notice-count.sparql
 
  - category: Stats
@@ -164,6 +164,31 @@ queries:
    title: Top winners by contract count
    description: This query retrieves the top 10 winners by contract count for a specific date range, joining contracts to notices through lots.
    sparql: queries/top-winners-by-contract-count.sparql
+
+ - category: Stats
+   title: Top CPV categories by notice count
+   description: This query retrieves the top 10 procurement categories (main CPV - Common Procurement Vocabulary - classification) by notice count for a date range. Defaults to the last 7 days excluding today.
+   sparql: queries/top-cpv-categories-by-notice-count.sparql
+
+ - category: Stats
+   title: Top buyers by awarded value
+   description: "This query retrieves the top 10 buyers by total awarded value (converted to EUR using an inline exchange-rate table) for a date range. A notice-level total is split evenly across its buyers for joint procurement; amounts in currencies not in the rate table are excluded. Defaults to the last 7 days excluding today. Note: this query is slow (about 2 minutes for a month, 5 for six months) and wide ranges may time out."
+   sparql: queries/top-buyers-by-awarded-value.sparql
+
+ - category: Stats
+   title: Top budget providers by awarded value
+   description: "This query retrieves the top 10 budget providers (an optional field, declared on only a small share of lot results) by total awarded value (converted to EUR using an inline exchange-rate table) for a date range. The winning tender's value for each lot result is split evenly across its budget providers; amounts in currencies not in the rate table are excluded. Defaults to the last 7 days excluding today. Note: this query is slow (often a minute or more) regardless of the range, and timing varies between runs."
+   sparql: queries/top-budget-providers-by-awarded-value.sparql
+
+ - category: Stats
+   title: Top payment executors by awarded value
+   description: "This query retrieves the top 10 payment executors (an optional field, declared on only a small share of lot results) by total awarded value (converted to EUR using an inline exchange-rate table) for a date range. The winning tender's value for each lot result is split evenly across its payment executors; amounts in currencies not in the rate table are excluded. Defaults to the last 7 days excluding today. Note: this query is slow (often a minute or more) regardless of the range, and timing varies between runs."
+   sparql: queries/top-payment-executors-by-awarded-value.sparql
+
+ - category: Stats
+   title: Top competition notices by estimated value
+   description: This query retrieves the top 10 competition notices by estimated procedure value (converted to EUR using an inline exchange-rate table) for a date range, with a clickable link to each notice on TED. Amounts in currencies not in the rate table are excluded. Defaults to the last 7 days excluding today.
+   sparql: queries/top-competition-notices-by-estimated-value.sparql
 
  - category: Stats
    title: SME tenders per date
