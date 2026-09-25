@@ -7,6 +7,11 @@
 # evenly across the notice's buyers (amount / number of buyers on the notice) so it is
 # not counted in full for each buyer.
 #
+# Outliers: some notices carry an implausibly large hasTotalAwardedValue, likely a
+# data quality issue in the notice itself rather than in this query - for example,
+# notice 00523578-2025 has a total awarded value of 75,968,000,000 (EUR), far above
+# the next-highest values seen. Such notices can dominate the top 10.
+#
 # Currency conversion: the TED Open Data Service stores financial values only in their
 # original currency (see the known issues and limitations page -
 # https://docs.ted.europa.eu/ODS/latest/querying/known_issues.html), so this query

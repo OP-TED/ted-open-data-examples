@@ -10,6 +10,11 @@
 # These rates are approximate and go stale over time; update them as needed. Notices whose
 # estimated value is in a currency not present in the table are EXCLUDED from the results.
 #
+# Outliers: some notices carry an implausibly large hasEstimatedValue, likely a data
+# quality issue in the notice itself rather than in this query - for example, several
+# distinct notices in 2025 repeat the exact same values of 600,000,000,000 and
+# 507,000,000,000 (EUR). Such notices can dominate the top 10.
+#
 # Tested for a one-year range (2025); returns results in about 30 seconds.
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>

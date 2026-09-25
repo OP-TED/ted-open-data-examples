@@ -53,6 +53,11 @@
 # executor's total may therefore be understated if some of its awards were in an
 # unlisted currency).
 #
+# Outliers: some notices carry an implausibly large hasFinancialOfferValue for their
+# winning tender - for example, notice 00840791-2025 has a winning tender value of
+# 260,000,000,000 (EUR). This is a data quality issue in the notice itself, not a query
+# error, and such notices can dominate the top 10.
+#
 # Duplicate names: the same real organisation can be recorded with a different name
 # across notices - a leading/trailing space or a difference in capitalisation are the
 # most common cases. To avoid splitting one organisation's total across two rows for
