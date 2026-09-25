@@ -2,6 +2,12 @@
 # Returns: main CPV code, main CPV label, and the number of notices in that category, ordered by highest count.
 # Defaults to the last 7 days excluding today; change the range below to query a different period.
 #
+# Coverage: about 1.2% of notices have no procedure link at all (neither
+# epo:refersToProcedure nor epo:announcesProcedure), so they are excluded from every
+# category count - verified for July 2026: 1,040 of 84,151 notices. These are mostly
+# notice type pin-only, with some pin-buyer and pmc - for example, publication numbers
+# 00449643-2026, 00449721-2026 and 00450444-2026.
+#
 # Tested for the range 2023-01-01 to 2026-08-31; returns results in about 3 minutes.
 
 PREFIX epo: <http://data.europa.eu/a4g/ontology#>
