@@ -28,7 +28,7 @@ WHERE {
         ?notice a epo:Notice ;
                 epo:hasNoticePublicationNumber ?publicationNumber ;
                 epo:hasPublicationDate ?publicationDate ;
-                epo:refersToRole ?buyer .
+                (epo:announcesRole|epo:refersToRole) ?buyer .
 
         ?buyer a epo:Buyer ;
                epo:playedBy ?organization .
