@@ -1,10 +1,15 @@
 # Retrieve the lots associated to a specific procedure.
-# Returns: procedure identifier, lot identifier, lot title, and main CPV code.
+# Returns: publication number, lot URI, procedure identifier, lot identifier, lot title, and main CPV code.
 # Change the procedure identifier below to query a different procedure.
 # ?procedureIdentifier: Procedure identifier
 #
-# Note: Groups by lot and picks one lot title via SAMPLE. A lot whose title
-# is recorded in more than one language would otherwise produce duplicate rows.
+# Note: A procedure can be announced by more than one notice (e.g. an
+# original result notice and a later modification); each notice mints its
+# own lot node with a distinct URI but the same lot identifier. The
+# publication number and lot URI (?lot) are included so each row shows which
+# notice it comes from, rather than appearing as identical duplicates. The
+# lot title is picked via SAMPLE to collapse titles recorded in more than
+# one language.
 
 PREFIX adms: <http://www.w3.org/ns/adms#>
 PREFIX dc: <http://purl.org/dc/elements/1.1/>
@@ -13,7 +18,7 @@ PREFIX epo: <http://data.europa.eu/a4g/ontology#>
 PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
 
-SELECT ?procedureIdentifier ?lotIdentifier (SAMPLE(?lotTitle) AS ?lotTitle) ?lotMainCPVCode ?lotMainCPV
+SELECT ?publicationNumber ?lot ?procedureIdentifier ?lotIdentifier (SAMPLE(?lotTitle) AS ?lotTitle) ?lotMainCPVCode ?lotMainCPV
 
 WHERE {
 
@@ -28,6 +33,11 @@ WHERE {
                adms:identifier / skos:notation ?procedureIdentifier ;
                epo:hasProcurementScopeDividedIntoLot ?lot .
 
+    # Link the notice that announces this procedure
+    ?notice a epo:Notice ;
+            epo:hasNoticePublicationNumber ?publicationNumber ;
+            epo:refersToProcedure ?procedure .
+
     # Get lot details and CPV classification
     ?lot adms:identifier / skos:notation ?lotIdentifier ;
          epo:hasPurpose / epo:hasMainClassification ?lotMainCPVUri .
@@ -40,5 +50,5 @@ WHERE {
                  skos:prefLabel ?lotMainCPV .
   FILTER(lang(?lotMainCPV) = "en")
 }
-GROUP BY ?procedureIdentifier ?lot ?lotIdentifier ?lotMainCPVCode ?lotMainCPV
+GROUP BY ?publicationNumber ?lot ?procedureIdentifier ?lotIdentifier ?lotMainCPVCode ?lotMainCPV
 ORDER BY ASC(?lotIdentifier)
