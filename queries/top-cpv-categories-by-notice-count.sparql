@@ -1,0 +1,41 @@
+# Retrieves the top 10 procurement categories (main CPV - Common Procurement Vocabulary - classification) by notice count, for a date range.
+# Returns: main CPV code, main CPV label, and the number of notices in that category, ordered by highest count.
+# Defaults to the last 7 days excluding today; change the range below to query a different period.
+#
+# Coverage: about 1.2% of notices have no procedure link at all (neither
+# epo:refersToProcedure nor epo:announcesProcedure), so they are excluded from every
+# category count - verified for July 2026: 1,040 of 84,151 notices. These are mostly
+# notice type pin-only, with some pin-buyer and pmc - for example, publication numbers
+# 00449643-2026, 00449721-2026 and 00450444-2026.
+#
+# Tested for the range 2023-01-01 to 2026-08-31; returns results in about 3 minutes.
+
+PREFIX epo: <http://data.europa.eu/a4g/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+SELECT ?procedureMainCPVCode ?procedureMainCPV (COUNT(DISTINCT ?publicationNumber) AS ?noticeCount)
+WHERE {
+  # Default range: the last 7 days, excluding today (7 days ago through yesterday).
+  BIND (xsd:date(NOW()) - "P7D"^^xsd:duration AS ?publicationStartDate)
+  BIND (xsd:date(NOW()) - "P1D"^^xsd:duration AS ?publicationEndDate)
+  # To use a fixed range instead, comment out the two BINDs above and uncomment the line below:
+  # VALUES (?publicationStartDate ?publicationEndDate) { ("2026-08-01"^^xsd:date "2026-08-31"^^xsd:date) }
+  FILTER (?publicationDate >= ?publicationStartDate && ?publicationDate <= ?publicationEndDate)
+
+  GRAPH ?g {
+    ?notice a epo:Notice ;
+            epo:hasNoticePublicationNumber ?publicationNumber ;
+            epo:hasPublicationDate ?publicationDate ;
+            epo:refersToProcedure / epo:hasPurpose / epo:hasMainClassification ?CPVuri .
+  }
+
+  # Resolve the CPV code and English label
+  ?CPVuri dc:identifier ?procedureMainCPVCode ;
+          skos:prefLabel ?procedureMainCPV .
+  FILTER (lang(?procedureMainCPV) = "en")
+}
+GROUP BY ?procedureMainCPVCode ?procedureMainCPV
+ORDER BY DESC(?noticeCount)
+LIMIT 10

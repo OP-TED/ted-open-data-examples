@@ -1,0 +1,101 @@
+# Retrieves the top 10 competition notices by estimated procedure value (converted to EUR) for a date range.
+# Returns: publication number, a clickable TED notice URL, estimated value in the original
+# currency, the original currency, and the estimated value converted to EUR, ordered by highest EUR value.
+# Defaults to the last 7 days excluding today; change the range below to query a different period.
+#
+# Currency conversion: the TED Open Data Service stores financial values only in their
+# original currency (see the known issues and limitations page -
+# https://docs.ted.europa.eu/ODS/latest/querying/known_issues.html), so this query
+# converts to EUR using the inline exchange-rate table below (rates as of June 2026).
+# These rates are approximate and go stale over time; update them as needed. Notices whose
+# estimated value is in a currency not present in the table are EXCLUDED from the results.
+#
+# Outliers: some notices carry an implausibly large hasEstimatedValue, likely a data
+# quality issue in the notice itself rather than in this query - for example, several
+# distinct notices in 2025 repeat the exact same values of 600,000,000,000 and
+# 507,000,000,000 (EUR). Such notices can dominate the top 10.
+#
+# Tested for a one-year range (2025); returns results in about 30 seconds.
+
+PREFIX epo: <http://data.europa.eu/a4g/ontology#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX dc: <http://purl.org/dc/elements/1.1/>
+
+SELECT ?publicationNumber ?noticeUrl ?estimatedValue ?currency ?estimatedValueEUR
+WHERE {
+  # Default range: the last 7 days, excluding today (7 days ago through yesterday).
+  BIND (xsd:date(NOW()) - "P7D"^^xsd:duration AS ?publicationStartDate)
+  BIND (xsd:date(NOW()) - "P1D"^^xsd:duration AS ?publicationEndDate)
+  # To use a fixed range instead, comment out the two BINDs above and uncomment the line below:
+  # VALUES (?publicationStartDate ?publicationEndDate) { ("2025-12-01"^^xsd:date "2025-12-07"^^xsd:date) }
+  FILTER (?publicationDate >= ?publicationStartDate && ?publicationDate <= ?publicationEndDate)
+
+  GRAPH ?g {
+    ?notice a epo:CompetitionNotice ;
+            epo:hasPublicationDate ?publicationDate ;
+            epo:hasNoticePublicationNumber ?publicationNumber ;
+            epo:refersToProcedure ?procedure .
+
+    ?procedure a epo:Procedure ;
+               epo:hasEstimatedValue ?estimatedValueObject .
+
+    ?estimatedValueObject epo:hasAmountValue ?estimatedValue ;
+                          epo:hasCurrency ?currencyURI .
+  }
+
+  # Exchange rate lookup table (rates to EUR) as of June 2026
+  VALUES (?currency ?rate) {
+    ("EUR" 1.0)
+    ("AED" 0.251)
+    ("ALL" 0.0098)
+    ("AMD" 0.0024)
+    ("ANG" 0.513)
+    ("AUD" 0.60)
+    ("BAM" 0.511)
+    ("BGN" 0.511)
+    ("BRL" 0.163)
+    ("CAD" 0.68)
+    ("CHF" 1.05)
+    ("CNY" 0.127)
+    ("CZK" 0.040)
+    ("DKK" 0.134)
+    ("EGP" 0.019)
+    ("GBP" 1.17)
+    ("HKD" 0.118)
+    ("HUF" 0.0025)
+    ("INR" 0.011)
+    ("ISK" 0.0067)
+    ("JPY" 0.0062)
+    ("LSL" 0.051)
+    ("MAD" 0.092)
+    ("MDL" 0.052)
+    ("MGA" 0.0002)
+    ("MKD" 0.016)
+    ("MYR" 0.21)
+    ("NOK" 0.085)
+    ("PLN" 0.233)
+    ("RON" 0.201)
+    ("RSD" 0.0085)
+    ("RWF" 0.0007)
+    ("SEK" 0.088)
+    ("THB" 0.027)
+    ("TND" 0.30)
+    ("TRY" 0.027)
+    ("TZS" 0.00036)
+    ("UAH" 0.022)
+    ("USD" 0.92)
+    ("USN" 0.92)
+    ("UZS" 0.000073)
+    ("XAF" 0.00152)
+    ("XOF" 0.00152)
+  }
+  ?currencyURI dc:identifier ?currency .
+
+  BIND(?estimatedValue * ?rate AS ?estimatedValueEUR)
+
+  # Build a clickable link to the notice on the TED website. Constructed as an IRI
+  # so result viewers render it as a hyperlink rather than plain text.
+  BIND(IRI(CONCAT("https://ted.europa.eu/en/notice/-/detail/", ?publicationNumber)) AS ?noticeUrl)
+}
+ORDER BY DESC(?estimatedValueEUR)
+LIMIT 10
