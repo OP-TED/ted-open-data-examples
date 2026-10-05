@@ -25,11 +25,6 @@ queries:
    description: This query retrieves the amount awarded per tender announced in result notices published on a specific date.
    sparql: queries/awarded-tender-amounts.sparql 
 
-# - category: Contracts
-#   title: Contracts published on a specific date
-#   description: This query retrieves information about contracts (Contract title, Conclusion date, Lot and Estimated values) published in procurement notices on a specific date.
-#   sparql: queries/contracts-per-day.sparql   
-
  - category: Procedures
    title: Estimated amounts of procedures published on a specific date
    description: This query retrieves the estimated amount of a procedure as published in a notice on a specific date.
